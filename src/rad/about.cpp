@@ -24,11 +24,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "about.h"
+
+#include "appdata.h"
+
 #include <wx/html/htmlwin.h>
 #include <wx/mimetype.h>
-#include <wx/filename.h>
-#include "rad/appdata.h"
-#include <wx/utils.h>
 
 #define ID_DEFAULT -1 // Default
 #define ID_OK 1000
@@ -61,14 +61,9 @@ class HtmlWindow : public wxHtmlWindow
           wxExecute(cmd, wxEXEC_ASYNC);
     }
 
-    void OnLinkClicked(const wxHtmlLinkInfo& link)
-    {
-    	#if wxCHECK_VERSION( 2, 8, 0 )
-    	   	::wxLaunchDefaultBrowser( link.GetHref() );
-		#else
-			LaunchBrowser(link.GetHref());
-		#endif
-    }
+	void OnLinkClicked(const wxHtmlLinkInfo& link) override {
+		::wxLaunchDefaultBrowser(link.GetHref());
+	}
 };
 
 AboutDialog::AboutDialog(wxWindow *parent, int id) : wxDialog(parent,id,wxT("About..."))
@@ -121,12 +116,7 @@ AboutDialog::AboutDialog(wxWindow *parent, int id) : wxDialog(parent,id,wxT("Abo
   // work around a wxMac bug
   htmlWin->SetSize(400, 600);
 #else
-    #if wxVERSION_NUMBER < 2900
-        htmlWin->SetSize(htmlWin->GetInternalRepresentation()->GetWidth(),
-                       htmlWin->GetInternalRepresentation()->GetHeight());
-    #else
-        htmlWin->SetMinSize( wxSize( 400, 600 ) );
-    #endif
+  htmlWin->SetMinSize(wxSize(400, 600));
 #endif
 
 

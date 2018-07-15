@@ -24,11 +24,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "xrccg.h"
+
+#include "../model/objectbase.h"
+#include "../utils/typeconv.h"
 #include "codewriter.h"
-#include "utils/typeconv.h"
-#include "utils/debug.h"
-#include "model/objectbase.h"
-#include "model/xrcfilter.h"
 
 #include <ticpp.h>
 
@@ -85,11 +84,7 @@ bool XrcCodeGenerator::GenerateCode( PObjectBase project )
 	TiXmlPrinter printer;
 	printer.SetIndent( "\t" );
 
-	#if defined( __WXMSW__ )
-		printer.SetLineBreak( "\r\n" );
-	#else
-		printer.SetLineBreak( "\n" );
-	#endif
+	printer.SetLineBreak("\n");
 
 	doc.Accept( &printer );
 	const std::string& xrcFile = printer.Str();
@@ -196,6 +191,21 @@ ticpp::Element* XrcCodeGenerator::GetElement( PObjectBase obj, ticpp::Element* p
 				m_contextMenus.push_back( element );
 				return NULL;
 			}
+		}
+		else if ( class_name == "wxCollapsiblePane" )
+		{
+			ticpp::Element *aux = new ticpp::Element( "object" );
+			aux->SetAttribute( "class", "panewindow" );
+
+			ticpp::Element *child = GetElement( obj->GetChild( 0 ), aux );
+
+			aux->LinkEndChild( child );
+			element->LinkEndChild( aux );
+
+			delete aux;
+			delete child;
+
+			return element;
 		}
 
 		for ( unsigned int i = 0; i < obj->GetChildCount(); i++ )

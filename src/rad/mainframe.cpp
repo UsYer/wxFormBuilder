@@ -25,38 +25,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "mainframe.h"
 
-#include "wx/config.h"
-#include "utils/debug.h"
-#include "utils/typeconv.h"
-#include "rad/title.h"
-#include "rad/bitmaps.h"
-#include "rad/cpppanel/cpppanel.h"
-#include "rad/pythonpanel/pythonpanel.h"
-#include "rad/luapanel/luapanel.h"
-#include "rad/phppanel/phppanel.h"
-#include "rad/xrcpanel/xrcpanel.h"
-#include "rad/geninheritclass/geninhertclass.h"
-#include "rad/auitabart.h"
+#include "../model/xrcfilter.h"
+#include "../utils/stringutils.h"
+#include "../utils/wxfbexception.h"
+#include "about.h"
+#include "appdata.h"
+#include "auitabart.h"
+#include "bitmaps.h"
+#include "cpppanel/cpppanel.h"
+#include "designer/visualeditor.h"
+#include "geninheritclass/geninhertclass.h"
 #include "inspector/objinspect.h"
+#include "luapanel/luapanel.h"
 #include "objecttree/objecttree.h"
 #include "palette.h"
-#include "rad/designer/visualeditor.h"
-
-#include "model/xrcfilter.h"
-#include "rad/about.h"
-#include "rad/wxfbevent.h"
+#include "phppanel/phppanel.h"
+#include "pythonpanel/pythonpanel.h"
+#include "title.h"
+#include "wx/config.h"
+#include "wxfbevent.h"
 #include "wxfbmanager.h"
-#include "utils/wxfbexception.h"
-#include "utils/stringutils.h"
-#include "utils/wxfbdefs.h"
-#include <wx/filename.h>
-
-#include <rad/appdata.h>
-#include "model/objectbase.h"
-
-#if wxVERSION_NUMBER < 2900
-#include <wx/wxScintilla/wxscintilla.h>
-#endif
+#include "xrcpanel/xrcpanel.h"
 
 #define ID_SAVE_PRJ      102
 #define ID_OPEN_PRJ      103
@@ -361,23 +350,14 @@ m_findDialog( NULL )
 	// So splitter windows can be restored correctly
 	Connect( wxEVT_IDLE, wxIdleEventHandler( MainFrame::OnIdle ) );
 
-	// So we don't respond to a FlatNoteBookPageChanged event during construction
-#ifdef USE_FLATNOTEBOOK
-	m_notebook->Connect( wxEVT_COMMAND_FLATNOTEBOOK_PAGE_CHANGED, wxFlatNotebookEventHandler( MainFrame::OnFlatNotebookPageChanged ), 0, this );
-#else
 	m_notebook->Connect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler( MainFrame::OnAuiNotebookPageChanged ), NULL, this );
-#endif
 
-};
+}
 
 
 MainFrame::~MainFrame()
 {
-#ifdef USE_FLATNOTEBOOK
-	m_notebook->Disconnect( wxEVT_COMMAND_FLATNOTEBOOK_PAGE_CHANGED, wxFlatNotebookEventHandler( MainFrame::OnFlatNotebookPageChanged ), 0, this );
-#else
 	m_notebook->Disconnect( wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, wxAuiNotebookEventHandler( MainFrame::OnAuiNotebookPageChanged ), NULL, this );
-#endif
 
 #ifdef __WXMAC__
     // work around problem on wxMac
@@ -505,9 +485,6 @@ void MainFrame::SavePosition( const wxString &name )
 	}
 
 	config->SetPath( wxT( ".." ) );
-#ifdef USE_FLATNOTEBOOK
-	config->Write( wxT("/mainframe/editor/notebook_style"), m_notebook->GetWindowStyleFlag() );
-#endif
 }
 
 void MainFrame::OnSaveProject( wxCommandEvent &event )
@@ -979,7 +956,8 @@ void MainFrame::UpdateFrame()
 		file = fn.GetName();
 	}
 
-	SetTitle(wxString::Format(wxT("%s%s - wxFormBuilder v3.6.2"), AppData()->IsModified() ? wxT("*") : wxT(""), file.c_str()));
+	SetTitle(wxString::Format(wxT("%s%s - wxFormBuilder v3.8.0"),
+	                          AppData()->IsModified() ? wxT("*") : wxT(""), file.c_str()));
 	GetStatusBar()->SetStatusText( filename, STATUS_FIELD_PATH );
 
 	// Enable/Disable toolbar and menu entries
@@ -1093,17 +1071,10 @@ void MainFrame::OnCopy( wxCommandEvent &)
 {
 	wxWindow *focusedWindow = wxWindow::FindFocus();
 
-#if wxVERSION_NUMBER < 2900
-    if ( focusedWindow != NULL && focusedWindow->IsKindOf( CLASSINFO( wxScintilla ) ) )
-    {
-        ( ( wxScintilla* )focusedWindow )->Copy();
-    }
-#else
     if ( focusedWindow != NULL && focusedWindow->IsKindOf( wxCLASSINFO( wxStyledTextCtrl ) ) )
     {
         ( ( wxStyledTextCtrl* )focusedWindow )->Copy();
     }
-#endif
 	else
 	{
 		AppData()->CopyObject( AppData()->GetSelectedObject() );
@@ -1115,15 +1086,9 @@ void MainFrame::OnCut ( wxCommandEvent &)
 {
 	wxWindow *focusedWindow = wxWindow::FindFocus();
 
-#if wxVERSION_NUMBER < 2900
-    if ( focusedWindow != NULL && focusedWindow->IsKindOf( CLASSINFO( wxScintilla ) ) )
-    {
-        ( ( wxScintilla* )focusedWindow )->Cut();
-#else
     if ( focusedWindow != NULL && focusedWindow->IsKindOf( wxCLASSINFO( wxStyledTextCtrl ) ) )
     {
         ( ( wxStyledTextCtrl* )focusedWindow )->Cut();
-#endif
     }
 	else
 	{
@@ -1142,15 +1107,9 @@ void MainFrame::OnPaste ( wxCommandEvent &)
 {
 	wxWindow *focusedWindow = wxWindow::FindFocus();
 
-#if wxVERSION_NUMBER < 2900
-    if ( focusedWindow != NULL && focusedWindow->IsKindOf( CLASSINFO( wxScintilla ) ) )
-    {
-        ( ( wxScintilla* )focusedWindow )->Paste();
-#else
     if ( focusedWindow != NULL && focusedWindow->IsKindOf( wxCLASSINFO( wxStyledTextCtrl ) ) )
     {
         ( ( wxStyledTextCtrl* )focusedWindow )->Paste();
-#endif
     }
 	else
 	{
@@ -1350,11 +1309,7 @@ bool MainFrame::SaveWarning()
 	return ( result != wxCANCEL );
 }
 
-#ifdef USE_FLATNOTEBOOK
-void MainFrame::OnFlatNotebookPageChanged( wxFlatNotebookEvent& event )
-#else
 void MainFrame::OnAuiNotebookPageChanged( wxAuiNotebookEvent& event )
-#endif
 {
 	UpdateFrame();
 
@@ -1625,64 +1580,34 @@ wxToolBar * MainFrame::CreateFBToolBar()
 
 wxWindow * MainFrame::CreateDesignerWindow( wxWindow *parent )
 {
-#ifdef USE_FLATNOTEBOOK
-	long nbStyle;
-	wxConfigBase* config = wxConfigBase::Get();
-	config->Read( wxT("/mainframe/editor/notebook_style"), &nbStyle, wxFNB_BOTTOM | wxFNB_NO_X_BUTTON | wxFNB_NO_NAV_BUTTONS | wxFNB_NODRAG  | wxFNB_FF2 | wxFNB_CUSTOM_DLG );
-
-	m_notebook = new wxFlatNotebook( parent, ID_EDITOR_FNB, wxDefaultPosition, wxDefaultSize, FNB_STYLE_OVERRIDES( nbStyle ) );
-	m_notebook->SetCustomizeOptions( wxFNB_CUSTOM_TAB_LOOK | wxFNB_CUSTOM_ORIENTATION | wxFNB_CUSTOM_LOCAL_DRAG );
-
-	// Set notebook icons
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "designer" ), 16 ) );
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "c++" ), 16 ) );
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "python" ), 16 ) );
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "php" ), 16 ) );
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "lua" ), 16 ) );
-	m_icons.Add( AppBitmaps::GetBitmap( wxT( "xrc" ), 16 ) );
-	m_notebook->SetImageList( &m_icons );
-#else
 	m_notebook = new wxAuiNotebook( parent, ID_EDITOR_FNB, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TOP );
 	m_notebook->SetArtProvider( new AuiTabArt() );
-#endif
 
 	m_visualEdit = new VisualEditor( m_notebook );
 	AppData()->GetManager()->SetVisualEditor( m_visualEdit );
 
 	m_notebook->AddPage( m_visualEdit, wxT( "Designer" ), false, 0 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 0, AppBitmaps::GetBitmap( wxT( "designer" ), 16 ) );
-#endif
 
 	m_cpp = new CppPanel( m_notebook, -1 );
 	m_notebook->AddPage( m_cpp, wxT( "C++" ), false, 1 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 1, AppBitmaps::GetBitmap( wxT( "c++" ), 16 ) );
-#endif
 
 	m_python = new PythonPanel( m_notebook, -1 );
 	m_notebook->AddPage( m_python, wxT( "Python" ), false, 2 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 2, AppBitmaps::GetBitmap( wxT( "python" ), 16 ) );
-#endif
 
 	m_php = new PHPPanel( m_notebook, -1 );
 	m_notebook->AddPage( m_php, wxT( "PHP" ), false, 3 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 3, AppBitmaps::GetBitmap( wxT( "php" ), 16 ) );
-#endif
 
 	m_lua = new LuaPanel(m_notebook, -1);
 	m_notebook->AddPage(m_lua,wxT( "Lua" ), false, 4 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 4, AppBitmaps::GetBitmap( wxT( "lua" ), 16 ) );
-#endif
 
 	m_xrc = new XrcPanel( m_notebook, -1 );
 	m_notebook->AddPage( m_xrc, wxT( "XRC" ), false, 5 );
-#ifndef USE_FLATNOTEBOOK
 	m_notebook->SetPageBitmap( 5, AppBitmaps::GetBitmap( wxT( "xrc" ), 16 ) );
-#endif
 
 	return m_notebook;
 }
@@ -1824,8 +1749,7 @@ void MainFrame::OnSplitterChanged( wxSplitterEvent &event )
 	m_rightSplitter_sash_pos = event.GetSashPosition();
 }
 
-void MainFrame::OnWindowSwap(wxCommandEvent& e)
-{
+void MainFrame::OnWindowSwap(wxCommandEvent&) {
     wxWindow* win1 = m_rightSplitter->GetWindow1();
     wxWindow* win2 = m_rightSplitter->GetWindow2();
 

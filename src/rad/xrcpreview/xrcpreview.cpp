@@ -21,17 +21,18 @@
 //   Ryan Mulder - rjmyst3@gmail.com
 //
 ///////////////////////////////////////////////////////////////////////////////
-#include "rad/xrcpreview/xrcpreview.h"
-#include "model/objectbase.h"
-#include "codegen/xrccg.h"
-#include "codegen/codewriter.h"
-#include "utils/annoyingdialog.h"
-#include "utils/wxfbexception.h"
-#include "utils/typeconv.h"
+#include "xrcpreview.h"
+
+#include "../../codegen/codewriter.h"
+#include "../../codegen/xrccg.h"
+#include "../../model/objectbase.h"
+#include "../../utils/annoyingdialog.h"
+#include "../../utils/typeconv.h"
+#include "../../utils/wxfbexception.h"
 
 #include <wx/fs_mem.h>
-#include <wx/xrc/xmlres.h>
 #include <wx/wizard.h>
+#include <wx/xrc/xmlres.h>
 
 #define MENU_DELETE 109
 
@@ -262,9 +263,7 @@ void XRCPreview::Show( PObjectBase form, const wxString& projectPath )
 
 	::wxSetWorkingDirectory( workingDir );
 
-	#if wxCHECK_VERSION( 2, 6, 3 )
 	res->Unload( wxT("memory:xrcpreview.xrc") );
-	#endif
 
 	wxMemoryFSHandler::RemoveFile( wxT("xrcpreview.xrc") );
 }

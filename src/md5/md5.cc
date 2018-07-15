@@ -48,6 +48,7 @@ documentation and/or software.
 #include "md5.hh"
 
 #include <assert.h>
+#include <cstring>
 #include <string>
 #include <iostream>
 
@@ -69,10 +70,10 @@ MD5::MD5(){
 // operation, processing another message block, and updating the
 // context.
 
-void MD5::update ( const uint1 *input, uint4 input_length) {
+void MD5::update(const uint8_t* input, uint32_t input_length) {
 
-  uint4 input_index, buffer_index;
-  uint4 buffer_space;                // how much space is left in buffer
+	uint32_t input_index, buffer_index;
+	uint32_t buffer_space; // how much space is left in buffer
 
   if (finalized){  // so we can't update!
     cerr << "MD5::update:  Can't update a finalized digest!" << endl;
@@ -80,13 +81,13 @@ void MD5::update ( const uint1 *input, uint4 input_length) {
   }
 
   // Compute number of bytes mod 64
-  buffer_index = (unsigned int)((count[0] >> 3) & 0x3F);
+  buffer_index = (count[0] >> 3) & 0x3F;
 
   // Update number of bits
-  if (  (count[0] += ((uint4) input_length << 3))<((uint4) input_length << 3) )
+  if ((count[0] += (input_length << 3)) < (input_length << 3))
     count[1]++;
 
-  count[1] += ((uint4)input_length >> 29);
+  count[1] += input_length >> 29;
 
 
   buffer_space = 64 - buffer_index;  // how much space is left in buffer
@@ -94,7 +95,7 @@ void MD5::update ( const uint1 *input, uint4 input_length) {
   // Transform as many times as possible.
   if (input_length >= buffer_space) { // ie. we have enough to fill the buffer
     // fill the rest of the buffer and transform
-    memcpy (buffer + buffer_index, input, buffer_space);
+		std::memcpy(buffer + buffer_index, input, buffer_space);
     transform (buffer);
 
     // now, transform each 64-byte piece of the input, bypassing the buffer
@@ -109,7 +110,7 @@ void MD5::update ( const uint1 *input, uint4 input_length) {
 
 
   // and here we do the buffering:
-  memcpy(buffer+buffer_index, input+input_index, input_length-input_index);
+	std::memcpy(buffer+buffer_index, input+input_index, input_length-input_index);
 }
 
 
@@ -184,7 +185,7 @@ void MD5::finalize (){
 
   unsigned char bits[8];
   unsigned int index, padLen;
-  static uint1 PADDING[64]={
+	static uint8_t PADDING[64] = {
     0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -199,7 +200,7 @@ void MD5::finalize (){
   encode (bits, count, 8);
 
   // Pad out to 56 mod 64.
-  index = (uint4) ((count[0] >> 3) & 0x3f);
+  index = (count[0] >> 3) & 0x3f;
   padLen = (index < 56) ? (56 - index) : (120 - index);
   update (PADDING, padLen);
 
@@ -210,7 +211,7 @@ void MD5::finalize (){
   encode (digest, state, 16);
 
   // Zeroize sensitive information
-  memset (buffer, 0, sizeof(*buffer));
+	std::memset(buffer, 0, sizeof(*buffer));
 
   finalized=1;
 
@@ -221,7 +222,7 @@ void MD5::finalize (){
 
 MD5::MD5(FILE *file){
 
-  init();  // must be called be all constructors
+	init(); // must be called by all constructors
   update(file);
   finalize ();
 }
@@ -231,7 +232,7 @@ MD5::MD5(FILE *file){
 
 MD5::MD5(istream& stream){
 
-  init();  // must called by all constructors
+	init(); // must be called by all constructors
   update (stream);
   finalize();
 }
@@ -240,7 +241,7 @@ MD5::MD5(istream& stream){
 
 MD5::MD5(ifstream& stream){
 
-  init();  // must called by all constructors
+	init(); // must be called by all constructors
   update (stream);
   finalize();
 }
@@ -249,15 +250,16 @@ MD5::MD5(ifstream& stream){
 
 unsigned char *MD5::raw_digest(){
 
-  uint1 *s = new uint1[16];
+	uint8_t* s = new uint8_t[16];
 
   if (!finalized){
     cerr << "MD5::raw_digest:  Can't get digest if you haven't "<<
       "finalized the digest!" <<endl;
-    return ( (unsigned char*) "");
+		std::memset(s, 0, 16);
+		return s;
   }
 
-  memcpy(s, digest, 16);
+	std::memcpy(s, digest, 16);
   return s;
 }
 
@@ -341,9 +343,9 @@ void MD5::init(){
 
 
 // MD5 basic transformation. Transforms state based on block.
-void MD5::transform (const uint1 block[64]){
+void MD5::transform(const uint8_t block[64]) {
 
-  uint4 a = state[0], b = state[1], c = state[2], d = state[3], x[16];
+	uint32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
   decode (x, block, 64);
 
@@ -427,7 +429,7 @@ void MD5::transform (const uint1 block[64]){
   state[3] += d;
 
   // Zeroize sensitive information.
-  memset ( (uint1 *) x, 0, sizeof(x));
+	std::memset(x, 0, sizeof(x));
 
 }
 
@@ -435,16 +437,13 @@ void MD5::transform (const uint1 block[64]){
 
 // Encodes input (UINT4) into output (unsigned char). Assumes len is
 // a multiple of 4.
-void MD5::encode (uint1 *output, uint4 *input, uint4 len) {
-
-  unsigned int i, j;
-
-  for (i = 0, j = 0; j < len; i++, j += 4) {
-    output[j]   = (uint1)  (input[i] & 0xff);
-    output[j+1] = (uint1) ((input[i] >> 8) & 0xff);
-    output[j+2] = (uint1) ((input[i] >> 16) & 0xff);
-    output[j+3] = (uint1) ((input[i] >> 24) & 0xff);
-  }
+void MD5::encode(uint8_t* output, const uint32_t* input, uint32_t len) {
+	for (uint32_t i = 0, j = 0; j < len; i++, j += 4) {
+		output[j] = static_cast<uint8_t>(input[i] & 0xff);
+		output[j + 1] = static_cast<uint8_t>((input[i] >> 8) & 0xff);
+		output[j + 2] = static_cast<uint8_t>((input[i] >> 16) & 0xff);
+		output[j + 3] = static_cast<uint8_t>((input[i] >> 24) & 0xff);
+	}
 }
 
 
@@ -452,44 +451,20 @@ void MD5::encode (uint1 *output, uint4 *input, uint4 len) {
 
 // Decodes input (unsigned char) into output (UINT4). Assumes len is
 // a multiple of 4.
-void MD5::decode (uint4 *output, const uint1 *input, uint4 len){
-
-  unsigned int i, j;
-
-  for (i = 0, j = 0; j < len; i++, j += 4)
-    output[i] = ((uint4)input[j]) | (((uint4)input[j+1]) << 8) |
-      (((uint4)input[j+2]) << 16) | (((uint4)input[j+3]) << 24);
+void MD5::decode(uint32_t* output, const uint8_t* input, uint32_t len) {
+	for (uint32_t i = 0, j = 0; j < len; i++, j += 4)
+		output[i] = static_cast<uint32_t>(input[j]) | (static_cast<uint32_t>(input[j + 1]) << 8) |
+		            (static_cast<uint32_t>(input[j + 2]) << 16) |
+		            (static_cast<uint32_t>(input[j + 3]) << 24);
 }
 
 
-
-
-
-// Note: Replace "for loop" with standard memcpy if possible.
-void MD5::memcpy (uint1 *output, const uint1 *input, uint4 len){
-
-  unsigned int i;
-
-  for (i = 0; i < len; i++)
-    output[i] = input[i];
-}
-
-
-
-// Note: Replace "for loop" with standard memset if possible.
-void MD5::memset (uint1 *output, uint1 value, uint4 len){
-
-  unsigned int i;
-
-  for (i = 0; i < len; i++)
-    output[i] = value;
-}
 
 
 
 // ROTATE_LEFT rotates x left n bits.
 
-inline unsigned int MD5::rotate_left  (uint4 x, uint4 n){
+inline unsigned int MD5::rotate_left(uint32_t x, uint32_t n) {
   return (x << n) | (x >> (32-n))  ;
 }
 
@@ -498,19 +473,19 @@ inline unsigned int MD5::rotate_left  (uint4 x, uint4 n){
 
 // F, G, H and I are basic MD5 functions.
 
-inline unsigned int MD5::F            (uint4 x, uint4 y, uint4 z){
+inline unsigned int MD5::F(uint32_t x, uint32_t y, uint32_t z) {
   return (x & y) | (~x & z);
 }
 
-inline unsigned int MD5::G            (uint4 x, uint4 y, uint4 z){
+inline unsigned int MD5::G(uint32_t x, uint32_t y, uint32_t z) {
   return (x & z) | (y & ~z);
 }
 
-inline unsigned int MD5::H            (uint4 x, uint4 y, uint4 z){
+inline unsigned int MD5::H(uint32_t x, uint32_t y, uint32_t z) {
   return x ^ y ^ z;
 }
 
-inline unsigned int MD5::I            (uint4 x, uint4 y, uint4 z){
+inline unsigned int MD5::I(uint32_t x, uint32_t y, uint32_t z) {
   return y ^ (x | ~z);
 }
 
@@ -519,27 +494,26 @@ inline unsigned int MD5::I            (uint4 x, uint4 y, uint4 z){
 // FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
 // Rotation is separate from addition to prevent recomputation.
 
-
-inline void MD5::FF(uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-		    uint4  s, uint4 ac){
+inline void MD5::FF(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s,
+                    uint32_t ac) {
  a += F(b, c, d) + x + ac;
  a = rotate_left (a, s) +b;
 }
 
-inline void MD5::GG(uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-		    uint4 s, uint4 ac){
+inline void MD5::GG(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s,
+                    uint32_t ac) {
  a += G(b, c, d) + x + ac;
  a = rotate_left (a, s) +b;
 }
 
-inline void MD5::HH(uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-		    uint4 s, uint4 ac){
+inline void MD5::HH(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s,
+                    uint32_t ac) {
  a += H(b, c, d) + x + ac;
  a = rotate_left (a, s) +b;
 }
 
-inline void MD5::II(uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-			     uint4 s, uint4 ac){
+inline void MD5::II(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s,
+                    uint32_t ac) {
  a += I(b, c, d) + x + ac;
  a = rotate_left (a, s) +b;
 }

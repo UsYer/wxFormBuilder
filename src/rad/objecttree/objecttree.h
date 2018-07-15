@@ -26,9 +26,8 @@
 #ifndef __OBJECT_TREE__
 #define __OBJECT_TREE__
 
-#include "utils/wxfbdefs.h"
-#include <map>
-#include "rad/customkeys.h"
+#include "../../utils/wxfbdefs.h"
+#include "../customkeys.h"
 
 #include <wx/treectrl.h>
 
@@ -47,7 +46,6 @@ private:
    wxImageList *m_iconList;
    IconIndexMap m_iconIdx;
 
-   wxTextCtrl* m_txtSelected;
    wxTreeCtrl* m_tcObjects;
 
    wxTreeItemId m_draggedItem;

@@ -24,7 +24,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "menueditor.h"
-#include "model/objectbase.h"
+
+#include "../model/objectbase.h"
 
 #define ID_DEFAULT -1 // Default
 #define ID_ADDMENUITEM 1000
@@ -640,6 +641,7 @@ void MenuEditor::OnUpdateMovers(wxUpdateUIEvent& e)
             break;
         case ID_MENUDOWN:
             e.Enable(GetSelectedItem() < m_menuList->GetItemCount() - 1);
+			break;
         default:
             break;
     }

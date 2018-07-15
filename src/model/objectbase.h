@@ -33,17 +33,11 @@
 #ifndef __OBJ__
 #define __OBJ__
 
-#include <iostream>
-#include <wx/string.h>
-#include <list>
-
+#include "../utils/wxfbdefs.h"
 #include "types.h"
-#include "ticpp.h"
 
-#include "wx/wx.h"
 #include <component.h>
-#include <memory>
-#include "utils/wxfbdefs.h"
+#include <list>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +90,6 @@ private:
 	wxString       m_def_value;
 	POptionList  m_opt_list;
 	std::list< PropertyChild > m_children; // Only used for parent properties
-	bool m_hidden; // Juan. Determina si la propiedad aparece o no en XRC
 	wxString		m_description;
 	wxString		m_customEditor; // an optional custom editor for the property grid
 
@@ -334,6 +327,8 @@ public:
 	/// Gets the parent object
 	PObjectBase GetParent () { return m_parent.lock(); }
 
+	PObjectBase GetNonSizerParent ();
+
 	/// Links the object to a parent
 	void SetParent(PObjectBase parent)  { m_parent = parent; }
 
@@ -467,7 +462,7 @@ public:
 	* Obtiene un hijo del objeto.
 	*/
 	PObjectBase GetChild (unsigned int idx);
-	
+
 	PObjectBase GetChild (unsigned int idx, const wxString& type);
 
 	/**
@@ -531,7 +526,7 @@ public:
 	wxArrayInt    GetPropertyAsArrayInt (const wxString& pname);
 	wxArrayString GetPropertyAsArrayString  (const wxString& pname);
 	wxString GetChildFromParentProperty( const wxString& parentName, const wxString& childName );
-	
+
 	IObject* GetChildPtr (unsigned int idx) { return GetChild(idx).get(); }
 };
 

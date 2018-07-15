@@ -22,27 +22,19 @@
 //   Juan Antonio Ortega  - jortegalalmolda@gmail.com
 //
 ///////////////////////////////////////////////////////////////////////////////
-#include "rad/mainframe.h"
+#include "maingui.h"
+
+#include "model/objectbase.h"
 #include "rad/appdata.h"
-#include <wx/filename.h>
-#include <wx/image.h>
-#include <wx/sysopt.h>
+#include "rad/mainframe.h"
+#include "utils/typeconv.h"
+#include "utils/wxfbexception.h"
+
+#include <wx/clipbrd.h>
 #include <wx/cmdline.h>
 #include <wx/config.h>
 #include <wx/stdpaths.h>
-#include <wx/xrc/xmlres.h>
-#include <wx/clipbrd.h>
-#include <wx/msgout.h>
-#ifdef USE_FLATNOTEBOOK
-#include <wx/wxFlatNotebook/wxFlatNotebook.h>
-#endif
-#include "utils/wxfbexception.h"
-#include <memory>
-#include "maingui.h"
-
-#include "utils/debug.h"
-#include "utils/typeconv.h"
-#include "model/objectbase.h"
+#include <wx/sysopt.h>
 
 #if wxVERSION_NUMBER >= 2905 && wxVERSION_NUMBER <= 3100
 #include <wx/xrc/xh_auinotbk.h>
@@ -53,7 +45,6 @@
 // Abnormal Termination Handling
 #if wxUSE_ON_FATAL_EXCEPTION && wxUSE_STACKWALKER
 	#include <wx/stackwalk.h>
-	#include <wx/utils.h>
 #elif defined(_WIN32) && defined(__MINGW32__)
 	#include "dbg_stack_trace/stack.hpp"
 	#include <sstream>
@@ -74,20 +65,18 @@
 
 void LogStack();
 
-static const wxCmdLineEntryDesc s_cmdLineDesc[] =
-{
-#if wxVERSION_NUMBER < 2900
-	{ wxCMD_LINE_SWITCH, wxT("g"), wxT("generate"),	wxT("Generate code from passed file.") },
-	{ wxCMD_LINE_OPTION, wxT("l"), wxT("language"),	wxT("Override the code_generation property from the passed file and generate the passed languages. Separate multiple languages with commas.") },
-	{ wxCMD_LINE_SWITCH, wxT("h"), wxT("help"),		wxT("Show this help message."), wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_HELP  },
-	{ wxCMD_LINE_PARAM, NULL, NULL,	wxT("File to open."), wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-#else
-    { wxCMD_LINE_SWITCH, "g", "generate", "Generate code from passed file." },
-    { wxCMD_LINE_OPTION, "l", "language", "Override the code_generation property from the passed file and generate the passed languages. Separate multiple languages with commas." },
-    { wxCMD_LINE_SWITCH, "h", "help",     "Show this help message.", wxCMD_LINE_VAL_STRING, wxCMD_LINE_OPTION_HELP  },
-    { wxCMD_LINE_PARAM, NULL, NULL,	      "File to open.", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-#endif
-	{ wxCMD_LINE_NONE }
+static const wxCmdLineEntryDesc s_cmdLineDesc[] = {
+	{ wxCMD_LINE_SWITCH, "g", "generate", "Generate code from passed file.", wxCMD_LINE_VAL_STRING,
+	  0 },
+	{ wxCMD_LINE_OPTION, "l", "language",
+	  "Override the code_generation property from the passed file and generate the passed "
+	  "languages. Separate multiple languages with commas.",
+	  wxCMD_LINE_VAL_STRING, 0 },
+	{ wxCMD_LINE_SWITCH, "h", "help", "Show this help message.", wxCMD_LINE_VAL_STRING,
+	  wxCMD_LINE_OPTION_HELP },
+	{ wxCMD_LINE_PARAM, nullptr, nullptr, "File to open.", wxCMD_LINE_VAL_STRING,
+	  wxCMD_LINE_PARAM_OPTIONAL },
+	{ wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0 }
 };
 
 IMPLEMENT_APP( MyApp )
@@ -336,9 +325,6 @@ bool MyApp::OnInit()
 int MyApp::OnExit()
 {
 	MacroDictionary::Destroy();
-#ifdef USE_FLATNOTEBOOK
-	wxFlatNotebook::CleanUp();
-#endif
 	AppDataDestroy();
 
 	if( !wxTheClipboard->IsOpened() )
@@ -378,8 +364,7 @@ void MyApp::MacOpenFile(const wxString &fileName)
 	class StackLogger : public wxStackWalker
 	{
 	protected:
-		void OnStackFrame( const wxStackFrame& frame )
-		{
+		void OnStackFrame(const wxStackFrame& frame) override {
 			// Build param string
 			wxString params;
 			size_t paramCount = frame.GetParamCount();
@@ -434,6 +419,8 @@ void MyApp::MacOpenFile(const wxString &fileName)
 	class StackLogger
 	{
 	public:
+		virtual ~StackLogger() = default;
+
 		void WalkFromException()
 		{
 			try
@@ -467,8 +454,7 @@ public:
         wxLog::Suspend();
     }
 
-    ~LoggingStackWalker()
-    {
+	~LoggingStackWalker() override {
         wxLogError( wxT("A Fatal Error Occurred. Click Details for a backtrace.") );
         wxLog::Resume();
         wxLog* logger = wxLog::GetActiveTarget();

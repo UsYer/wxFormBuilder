@@ -25,18 +25,15 @@
 
 #include "visualeditor.h"
 
-#include "visualeditor.h"
-#include "visualobj.h"
-#include "utils/typeconv.h"
-#include "utils/debug.h"
+#include "../../model/objectbase.h"
+#include "../../utils/typeconv.h"
+#include "../../utils/wxfbexception.h"
+#include "../appdata.h"
+#include "../wxfbevent.h"
+#include "../wxfbmanager.h"
 #include "menubar.h"
-#include "wx/statline.h"
-#include "rad/designer/resizablepanel.h"
-#include "rad/wxfbevent.h"
-#include "rad/wxfbmanager.h"
-#include <rad/appdata.h>
-#include "utils/wxfbexception.h"
-#include "model/objectbase.h"
+
+#include <wx/collpane.h>
 
 #ifdef __WX24__
 #define wxFULL_REPAINT_ON_RESIZE 0
@@ -150,12 +147,6 @@ void VisualEditor::OnClickBackPanel( wxMouseEvent& event )
 		AppData()->SelectObject(m_form);
 	}
 	event.Skip();
-
-#if wxVERSION_NUMBER < 2900
-		LogDebug( wxT( "event: %s" ), wxT("OnClickBackPanel") );
-#else
-		//LogDebug( "event: " + wxString("OnClickBackPanel") );
-#endif
 }
 
 void VisualEditor::OnResizeBackPanel (wxCommandEvent &) //(wxSashEvent &event)
@@ -164,11 +155,7 @@ void VisualEditor::OnResizeBackPanel (wxCommandEvent &) //(wxSashEvent &event)
 	LogDebug("VisualEditor::OnResizeBackPanel [%d,%d,%d,%d]",rect.x,rect.y,rect.width, rect.height);
 	m_back->SetSize(rect.width,rect.height);
 	m_back->Layout();*/
-#if wxVERSION_NUMBER < 2900
-		LogDebug( wxT( "event: %s" ), wxT("OnResizeBackPanel") );
-#else
-		LogDebug( "event: " + wxString("OnResizeBackPanel") );
-#endif
+	LogDebug( "event: " + wxString("OnResizeBackPanel") );
 
 	PObjectBase form (AppData()->GetSelectedForm());
 
@@ -507,14 +494,12 @@ void VisualEditor::Create()
 				backSize.SetHeight( maxSize.GetHeight() );
 			}
 
-			// Modify size property to match
 			if ( size != backSize )
 			{
-				PProperty psize = m_form->GetProperty( wxT("size") );
-				if ( psize )
-				{
-					AppData()->ModifyProperty( psize, TypeConv::SizeToString( backSize ) );
-				}
+				// Since we could be called by VisualEditor::OnPropertyModified we mustn't trigger a
+				// modify event again. Creating a delayed event won't work either, as this would
+				// mess up the undo/redo stack. Therefore we just log about the invalid size:
+				LogDebug("size is NOT between of minimum_size and maximum_size");
 			}
 
 			// --- [2] Set the color of the form -------------------------------
@@ -795,6 +780,13 @@ void VisualEditor::Generate( PObjectBase obj, wxWindow* wxparent, wxObject* pare
 	m_wxobjects.insert( wxObjectMap::value_type( createdObject, obj ) );
 	m_baseobjects.insert( ObjectBaseMap::value_type( obj.get(), createdObject ) );
 
+	// Access to collapsible pane
+	wxCollapsiblePane* collpane = wxDynamicCast( createdObject, wxCollapsiblePane );
+	if ( collpane != NULL ) {
+		createdWindow = collpane->GetPane();
+		createdObject = createdWindow;
+	}
+
 	// New wxparent for the window's children
 	wxWindow* new_wxparent = ( createdWindow ? createdWindow : wxparent );
 
@@ -805,7 +797,7 @@ void VisualEditor::Generate( PObjectBase obj, wxWindow* wxparent, wxObject* pare
 	}
 
 	comp->OnCreated( createdObject, wxparent );
-	
+
 	// If the created object is a sizer and the parent object is a window, set the sizer to the window
 	if (
 			( createdSizer != NULL && NULL != wxDynamicCast( parentObject, wxWindow ) )
@@ -1281,8 +1273,7 @@ void VisualEditor::OnProjectRefresh( wxFBEvent &)
 	Create();
 }
 
-void VisualEditor::OnAuiScaner(wxTimerEvent& event)
-{
+void VisualEditor::OnAuiScaner(wxTimerEvent&) {
 	if( m_auimgr )
 	{
 		ScanPanes( m_back->GetFrameContentPanel() );
@@ -1406,7 +1397,7 @@ void DesignerWindow::HighlightSelection( wxDC& dc )
 		}*/
 		size = m_selSizer->GetSize();
 
-		wxPen bluePen( *wxBLUE, 1, wxSOLID );
+		wxPen bluePen(*wxBLUE, 1, wxPENSTYLE_SOLID);
 		dc.SetPen( bluePen );
 		dc.SetBrush( *wxTRANSPARENT_BRUSH );
 		PObjectBase sizerParent = object->FindNearAncestorByBaseClass( wxT("sizer") );
@@ -1450,7 +1441,7 @@ void DesignerWindow::HighlightSelection( wxDC& dc )
 
 		if ( shown )
 		{
-			wxPen redPen( *wxRED, 1, wxSOLID );
+			wxPen redPen(*wxRED, 1, wxPENSTYLE_SOLID);
 			dc.SetPen( redPen );
 			dc.SetBrush( *wxTRANSPARENT_BRUSH );
 			DrawRectangle( dc, point, size, object );
