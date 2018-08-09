@@ -22,10 +22,9 @@ project "wxFormBuilder"
     includedirs
     {
         "../../src",
-        "../../sdk/tinyxml", "../../sdk/plugin_interface"
+        "../../subprojects/ticpp", "../../sdk/plugin_interface"
     }
     defines                 {"NO_GCC_PRAGMA", "TIXML_USE_TICPP", "APPEND_WXVERSION"}
-    flags                   {"ExtraWarnings"}
     libdirs                 {"../../sdk/lib"}
     links                   {"TiCPP", "plugin-interface"}
 
@@ -72,6 +71,7 @@ project "wxFormBuilder"
 
     configuration "vs*"
         defines         {"_CRT_SECURE_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS"}
+        buildoptions    {"/wd4003"}
 
     configuration "macosx"
         linkoptions         {"-Wl,-L../../../output/lib/wxformbuilder"}

@@ -475,7 +475,7 @@ void LuaCodeGenerator::GenerateInheritedClass( PObjectBase userClasses, PObjectB
 					PObjectInfo obj_info = obj->GetObjectInfo();
 
 					wxString strClassName = wxT("");
-					wxString code = GenEventEntryForInheritedClass(obj, obj_info, templateName, handlerName, strClassName);
+					code = GenEventEntryForInheritedClass(obj, obj_info, templateName, handlerName, strClassName);
 
 					bool bAddCaption = false;
 					PProperty propName = obj->GetProperty( wxT("name") );
@@ -1154,9 +1154,9 @@ void LuaCodeGenerator::GenDestructor( PObjectBase class_obj, const EventVector &
 	if ( m_disconnectEvents && !events.empty() )
 	{
 		GenEvents( class_obj, events, strClassName, true );
+	} else if (class_obj->GetPropertyAsInteger(wxT("aui_managed")) == 0) {
+		m_source->WriteLn(wxT("pass"));
 	}
-	else
-		if( !class_obj->GetPropertyAsInteger( wxT("aui_managed") ) ) m_source->WriteLn( wxT("pass") );
 
 	// destruct objects
 	GenDestruction( class_obj );
@@ -1271,9 +1271,9 @@ void LuaCodeGenerator::GenConstruction(PObjectBase obj, bool is_widget, wxString
 					sub2 = obj->GetChild(1)->GetChild(0);
 
 					wxString _template;
-					bool bSplitVertical = false;
 					wxString strMode = obj->GetProperty( wxT("splitmode") )->GetValue();
-					if ( (bSplitVertical = (strMode == wxT("wxSPLIT_VERTICAL"))) )
+					bool bSplitVertical = (strMode == wxT("wxSPLIT_VERTICAL"));
+					if (bSplitVertical)
 					{
 						_template = wxT("#utbl$name:SplitVertically( ");
 					}

@@ -51,8 +51,6 @@ wxFBSizeProperty::wxFBSizeProperty( const wxString& label,
     AddPrivateChild( new wxIntProperty( wxT("Height"), wxPG_LABEL, value.y ) );
 }
 
-wxFBSizeProperty::~wxFBSizeProperty() {}
-
 void wxFBSizeProperty::RefreshChildren()
 {
     if ( GetChildCount() < 2 ) return;
@@ -791,10 +789,9 @@ wxPGWindowList wxPGSliderEditor::CreateControls( wxPropertyGrid* propgrid,
         else if ( v_d > 1 )
             v_d = 1;
     }
-    int sliderId = wxNewId();
 
     ctrl->Create( propgrid->GetPanel(),
-                  sliderId,
+                  wxID_ANY,
                   (int)(v_d * m_max),
                   0,
                   m_max,
@@ -817,7 +814,7 @@ wxPGWindowList wxPGSliderEditor::CreateControls( wxPropertyGrid* propgrid,
 void wxPGSliderEditor::UpdateControl( wxPGProperty* property, wxWindow* wnd ) const
 {
     wxSlider *ctrl = ( wxSlider* ) wnd;
-    wxASSERT( ctrl && ctrl->IsKindOf( CLASSINFO(wxSlider) ) );
+	assert(ctrl && ctrl->IsKindOf(CLASSINFO(wxSlider)));
 
     double val = property->GetValue().GetDouble();
     if ( val < 0 )
@@ -849,7 +846,7 @@ bool wxPGSliderEditor::OnEvent( wxPropertyGrid* WXUNUSED( propgrid ),
 bool wxPGSliderEditor::GetValueFromControl( wxVariant& variant, wxPGProperty* WXUNUSED( property ), wxWindow* wnd ) const
 {
     wxSlider* ctrl = ( wxSlider* ) wnd;
-    wxASSERT( ctrl && ctrl->IsKindOf( CLASSINFO( wxSlider ) ) );
+	assert(ctrl && ctrl->IsKindOf(CLASSINFO(wxSlider)));
 
     variant = WXVARIANT( (double)ctrl->GetValue() / (double)(m_max) );
 

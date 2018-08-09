@@ -11,10 +11,10 @@ project "TiCPP"
     kind                "StaticLib"
     targetname          "ticpp"
     targetdir           "../../sdk/lib"
-    files               {"../../sdk/tinyxml/*.cpp", "../../sdk/tinyxml/*.h"}
+    files               {"../../subprojects/ticpp/*.cpp", "../../subprojects/ticpp/*.h"}
     excludes            {"xmltest.cpp"}
     defines             {"TIXML_USE_TICPP"}
-	
+
 	if wxArchitecture then
 		buildoptions	{"-arch " .. wxArchitecture}
 	end
@@ -27,11 +27,6 @@ project "TiCPP"
 
     configuration "vs*"
         defines         {"_CRT_SECURE_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS"}
-
-    configuration "vs2008 or vs2010"
-        -- multi-process building
-        flags           ("NoMinimalRebuild")
-        buildoptions    ("/MP")
 
     configuration "Debug"
         targetsuffix    "d"

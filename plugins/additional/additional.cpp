@@ -101,10 +101,10 @@ protected:
 };
 
 BEGIN_EVENT_TABLE( ComponentEvtHandler, wxEvtHandler )
-	EVT_COLOURPICKER_CHANGED( -1, ComponentEvtHandler::OnColourPickerColourChanged )
-	EVT_FONTPICKER_CHANGED( -1, ComponentEvtHandler::OnFontPickerFontChanged )
-	EVT_FILEPICKER_CHANGED( -1, ComponentEvtHandler::OnFilePickerFileChanged )
-	EVT_DIRPICKER_CHANGED( -1, ComponentEvtHandler::OnDirPickerDirChanged )
+	EVT_COLOURPICKER_CHANGED(wxID_ANY, ComponentEvtHandler::OnColourPickerColourChanged)
+	EVT_FONTPICKER_CHANGED(wxID_ANY, ComponentEvtHandler::OnFontPickerFontChanged)
+	EVT_FILEPICKER_CHANGED(wxID_ANY, ComponentEvtHandler::OnFilePickerFileChanged)
+	EVT_DIRPICKER_CHANGED(wxID_ANY, ComponentEvtHandler::OnDirPickerDirChanged)
 	EVT_TEXT( wxID_ANY, ComponentEvtHandler::OnText )
 
 	// Grid also seems to ignore clicks
@@ -115,8 +115,8 @@ BEGIN_EVENT_TABLE( ComponentEvtHandler, wxEvtHandler )
 	EVT_GRID_ROW_SIZE( ComponentEvtHandler::OnGridRowSize )
 
 #if wxVERSION_NUMBER >= 2904
-	EVT_STC_MARGINCLICK( -1, ComponentEvtHandler::OnMarginClick )
-	EVT_RIBBONBAR_PAGE_CHANGED( -1, ComponentEvtHandler::OnRibbonBarPageChanged )
+	EVT_STC_MARGINCLICK(wxID_ANY, ComponentEvtHandler::OnMarginClick)
+	EVT_RIBBONBAR_PAGE_CHANGED(wxID_ANY, ComponentEvtHandler::OnRibbonBarPageChanged)
 #endif
 END_EVENT_TABLE()
 
@@ -153,7 +153,7 @@ class CalendarCtrlComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		return new wxCalendarCtrl((wxWindow *)parent,-1,
+		return new wxCalendarCtrl((wxWindow *)parent, wxID_ANY,
 			wxDefaultDateTime,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
@@ -178,7 +178,7 @@ class DatePickerCtrlComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		return new wxDatePickerCtrl((wxWindow *)parent,-1,
+		return new wxDatePickerCtrl((wxWindow *)parent, wxID_ANY,
 			wxDefaultDateTime,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
@@ -202,7 +202,7 @@ class TimePickerCtrlComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		return new wxTimePickerCtrl( ( wxWindow * )parent, -1,
+		return new wxTimePickerCtrl( ( wxWindow * )parent, wxID_ANY,
 									 wxDefaultDateTime,
 									 obj->GetPropertyAsPoint( _( "pos" ) ),
 									 obj->GetPropertyAsSize( _( "size" ) ),
@@ -386,7 +386,7 @@ class HtmlWindowComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxHtmlWindow *hw = new wxHtmlWindow((wxWindow *)parent,-1,
+		wxHtmlWindow *hw = new wxHtmlWindow((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			obj->GetPropertyAsInteger(_("style")) | obj->GetPropertyAsInteger(_("window_style")));
@@ -420,7 +420,7 @@ class ToggleButtonComponent : public ComponentBase, public wxEvtHandler
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxToggleButton* window = new wxToggleButton((wxWindow *)parent,-1,
+		wxToggleButton* window = new wxToggleButton((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsString(_("label")),
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
@@ -475,7 +475,7 @@ class TreeCtrlComponent : public ComponentBase
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
 		int style = obj->GetPropertyAsInteger(_("style"));
-		wxTreeCtrl *tc = new wxTreeCtrl((wxWindow *)parent,-1,
+		wxTreeCtrl *tc = new wxTreeCtrl((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			style | obj->GetPropertyAsInteger(_("window_style")));
@@ -513,7 +513,7 @@ class ScrollBarComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxScrollBar *sb = new wxScrollBar((wxWindow *)parent,-1,
+		wxScrollBar *sb = new wxScrollBar((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			obj->GetPropertyAsInteger(_("style")) | obj->GetPropertyAsInteger(_("window_style")));
@@ -552,7 +552,7 @@ public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
 		int max = obj->GetPropertyAsInteger(_("max"));
 		int min = obj->GetPropertyAsInteger(_("min"));
-		wxSpinCtrl* window = new wxSpinCtrl((wxWindow *)parent,-1,
+		wxSpinCtrl* window = new wxSpinCtrl((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsString(_("value")),
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
@@ -611,7 +611,7 @@ class SpinCtrlDoubleComponent : public ComponentBase, public wxEvtHandler
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxSpinCtrlDouble* window = new wxSpinCtrlDouble((wxWindow *)parent, -1,
+		wxSpinCtrlDouble* window = new wxSpinCtrlDouble((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsString(_("value")),
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
@@ -677,7 +677,7 @@ class SpinButtonComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		return new wxSpinButton((wxWindow *)parent,-1,
+		return new wxSpinButton((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			obj->GetPropertyAsInteger(_("style")) | obj->GetPropertyAsInteger(_("window_style")));
@@ -702,7 +702,7 @@ public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
 		wxArrayString choices (obj->GetPropertyAsArrayString(_("choices")));
 		wxCheckListBox *cl =
-			new wxCheckListBox((wxWindow *)parent,-1,
+			new wxCheckListBox((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			choices,
@@ -730,7 +730,7 @@ class GridComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxGrid *grid = new wxGrid((wxWindow *)parent,-1,
+		wxGrid *grid = new wxGrid((wxWindow *)parent, wxID_ANY,
 			obj->GetPropertyAsPoint(_("pos")),
 			obj->GetPropertyAsSize(_("size")),
 			obj->GetPropertyAsInteger(_("window_style")));
@@ -832,6 +832,15 @@ public:
 		grid->PushEventHandler( new ComponentEvtHandler( grid, GetManager() ) );
 
 		return grid;
+	}
+
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxGrid);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
 	}
 
 	ticpp::Element* ExportToXrc(IObject* obj) override {
@@ -954,6 +963,15 @@ public:
 		return colourpicker;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxColourPickerCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+
 	ticpp::Element* ExportToXrc(IObject* obj) override {
 		ObjectToXrcFilter xrc(obj, _("wxColourPickerCtrl"), obj->GetPropertyAsString(_("name")));
 		xrc.AddProperty(_("colour"),_("value"),XRC_TYPE_COLOUR);
@@ -999,6 +1017,15 @@ public:
 
 		picker->PushEventHandler( new ComponentEvtHandler( picker, GetManager() ) );
 		return picker;
+	}
+
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxFontPickerCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
 	}
 
 	ticpp::Element* ExportToXrc(IObject* obj) override {
@@ -1048,6 +1075,15 @@ public:
 		return picker;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxFilePickerCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+
 	ticpp::Element* ExportToXrc(IObject* obj) override {
 		ObjectToXrcFilter xrc(obj, _("wxFilePickerCtrl"), obj->GetPropertyAsString(_("name")));
 		xrc.AddProperty(_("value"),_("value"),XRC_TYPE_TEXT);
@@ -1094,6 +1130,15 @@ public:
 		return picker;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxDirPickerCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+
 	ticpp::Element* ExportToXrc(IObject* obj) override {
 		ObjectToXrcFilter xrc(obj, _("wxDirPickerCtrl"), obj->GetPropertyAsString(_("name")));
 		xrc.AddProperty(_("value"),_("value"),XRC_TYPE_TEXT);
@@ -1125,7 +1170,7 @@ class HyperlinkComponent : public ComponentBase
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
 		wxHyperlinkCtrl* ctrl = new wxHyperlinkCtrl(
-			(wxWindow*)parent, -1,
+			(wxWindow*)parent, wxID_ANY,
 			obj->GetPropertyAsString(_("label")),
 			obj->GetPropertyAsString(_("url")),
 			obj->GetPropertyAsPoint(_("pos")),
@@ -1197,6 +1242,15 @@ public:
 		return ctrl;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxGenericDirCtrl);
+		if (window)
+		{
+			window->GetTreeCtrl()->PopEventHandler(true);
+		}
+	}
+
 	ticpp::Element* ExportToXrc(IObject* obj) override {
 		ObjectToXrcFilter xrc(obj, _("wxGenericDirCtrl"), obj->GetPropertyAsString(_("name")));
 		xrc.AddProperty(_("defaultfolder"),_("defaultfolder"),XRC_TYPE_TEXT);
@@ -1226,7 +1280,7 @@ class CustomControlComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* /*obj*/, wxObject* parent) override {
-		return new wxPanel((wxWindow *)parent, -1, wxDefaultPosition, wxDefaultSize, 0 );
+		return new wxPanel((wxWindow *)parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	}
 
 	ticpp::Element* ExportToXrc(IObject* obj) override {
@@ -1247,17 +1301,26 @@ public:
 
 		if ( !obj->IsNull( _("search_button") ) )
 		{
-			sc->ShowSearchButton( obj->GetPropertyAsInteger( _("search_button") ) );
+			sc->ShowSearchButton(obj->GetPropertyAsInteger(_("search_button")) != 0);
 		}
 
 		if ( !obj->IsNull( _("cancel_button") ) )
 		{
-			sc->ShowCancelButton( obj->GetPropertyAsInteger( _("cancel_button") ) );
+			sc->ShowCancelButton(obj->GetPropertyAsInteger(_("cancel_button")) != 0);
 		}
 
 		sc->PushEventHandler( new ComponentEvtHandler( sc, GetManager() ) );
 
 		return sc;
+	}
+
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxSearchCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
 	}
 
 	ticpp::Element* ExportToXrc(IObject* obj) override {
@@ -1329,6 +1392,15 @@ public:
 		return mc;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxMediaCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+
 	ticpp::Element* ExportToXrc(IObject* obj) override {
 		ObjectToXrcFilter xrc(obj, _("wxMediaCtrl"), obj->GetPropertyAsString(_("name")));
 		xrc.AddWindowProperties();
@@ -1353,7 +1425,7 @@ class PropertyGridComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxPropertyGrid* pg = new wxPropertyGrid((wxWindow *)parent,-1,
+		wxPropertyGrid* pg = new wxPropertyGrid((wxWindow *)parent, wxID_ANY,
 												obj->GetPropertyAsPoint(wxT("pos")),
 												obj->GetPropertyAsSize(wxT("size")),
 												obj->GetPropertyAsInteger(wxT("style")) |
@@ -1415,7 +1487,7 @@ class PropertyGridManagerComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxPropertyGridManager* pgman = new wxPropertyGridManager((wxWindow *)parent, -1,
+		wxPropertyGridManager* pgman = new wxPropertyGridManager((wxWindow *)parent, wxID_ANY,
 																obj->GetPropertyAsPoint(wxT("pos")),
 																obj->GetPropertyAsSize(wxT("size")),
 																obj->GetPropertyAsInteger(wxT("style")) |
@@ -1426,7 +1498,7 @@ public:
 			pgman->SetExtraStyle( obj->GetPropertyAsInteger( wxT("extra_style") ) );
 		}
 
-		pgman->ShowHeader( obj->GetPropertyAsInteger( wxT("show_header") ) );
+		pgman->ShowHeader(obj->GetPropertyAsInteger(wxT("show_header")) != 0);
 
 		// Adding a page sets target page to the one added, so
 		// we don't have to call SetTargetPage if we are filling
@@ -1587,7 +1659,7 @@ class StyledTextComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxStyledTextCtrl* m_code = new wxStyledTextCtrl( 	(wxWindow *)parent, -1,
+		wxStyledTextCtrl* m_code = new wxStyledTextCtrl( 	(wxWindow *)parent, wxID_ANY,
 												obj->GetPropertyAsPoint(_("pos")),
 												obj->GetPropertyAsSize(_("size")),
 												obj->GetPropertyAsInteger(_("window_style")),
@@ -1637,7 +1709,7 @@ public:
 		{
 			m_code->SetMarginWidth( 1, 0 );
 		}
-		m_code->SetIndentationGuides( ( 0 != obj->GetPropertyAsInteger( _("indentation_guides") ) ) );
+		m_code->SetIndentationGuides(obj->GetPropertyAsInteger(_("indentation_guides")));
 
 		m_code->SetMarginWidth( 2, 0 );
 
@@ -1678,7 +1750,7 @@ public:
 		m_code->SetSelBackground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
 		m_code->SetSelForeground(true, wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
 		m_code->SetViewEOL( ( 0 != obj->GetPropertyAsInteger( _("view_eol") ) ) );
-		m_code->SetViewWhiteSpace( ( 0 != obj->GetPropertyAsInteger( _("view_whitespace") ) ) );
+		m_code->SetViewWhiteSpace(obj->GetPropertyAsInteger(_("view_whitespace")));
 
 		m_code->SetCaretWidth(2);
 
@@ -1699,6 +1771,15 @@ public:
 		m_code->PushEventHandler( new ComponentEvtHandler( m_code, GetManager() ) );
 
 		return m_code;
+	}
+
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxStyledTextCtrl);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
 	}
 };
 
@@ -1779,27 +1860,93 @@ public:
 			{
 				if (childObj->GetPropertyAsString( _("type")) == _("Text"))
 				{
-					list->AppendTextColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendTextColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Toggle"))
 				{
-					list->AppendToggleColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendToggleColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Progress"))
 				{
-					list->AppendProgressColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendProgressColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("IconText"))
 				{
-					list->AppendIconTextColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendIconTextColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Date"))
 				{
-					list->AppendDateColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendDateColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Bitmap"))
 				{
-					list->AppendBitmapColumn(childObj->GetPropertyAsString( _("label")), childObj->GetPropertyAsInteger( _("model_column")));
+					auto* col = list->AppendBitmapColumn(
+						childObj->GetPropertyAsString(_("label")),
+						childObj->GetPropertyAsInteger(_("model_column")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 			}
 		}
@@ -1852,19 +1999,59 @@ public:
 			{
 				if (childObj->GetPropertyAsString( _("type")) == _("Text"))
 				{
-					list->AppendTextColumn(childObj->GetPropertyAsString( _("label")));
+					auto* col = list->AppendTextColumn(
+						childObj->GetPropertyAsString(_("label")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Toggle"))
 				{
-					list->AppendToggleColumn(childObj->GetPropertyAsString( _("label")));
+					auto* col = list->AppendToggleColumn(
+						childObj->GetPropertyAsString(_("label")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("Progress"))
 				{
-					list->AppendProgressColumn(childObj->GetPropertyAsString( _("label")));
+					auto* col = list->AppendProgressColumn(
+						childObj->GetPropertyAsString(_("label")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 				else if (childObj->GetPropertyAsString( _("type")) == _("IconText"))
 				{
-					list->AppendIconTextColumn(childObj->GetPropertyAsString( _("label")));
+					auto* col = list->AppendIconTextColumn(
+						childObj->GetPropertyAsString(_("label")),
+						static_cast<wxDataViewCellMode>(childObj->GetPropertyAsInteger(_("mode"))),
+						childObj->GetPropertyAsInteger(_("width")),
+						static_cast<wxAlignment>(childObj->GetPropertyAsInteger(_("align"))),
+						childObj->GetPropertyAsInteger(_("flags"))
+					);
+					if (!childObj->IsNull(_("ellipsize")))
+					{
+						col->GetRenderer()->EnableEllipsize(static_cast<wxEllipsizeMode>(childObj->GetPropertyAsInteger(_("ellipsize"))));
+					}
 				}
 			}
 		}
@@ -1881,7 +2068,7 @@ class wxcoreTreeListCtrlComponent : public ComponentBase
 {
 public:
 	wxObject* Create(IObject* obj, wxObject* parent) override {
-		wxTreeListCtrl* treeListCtrl = new wxTreeListCtrl( (wxWindow *)parent, -1,
+		wxTreeListCtrl* treeListCtrl = new wxTreeListCtrl( (wxWindow *)parent, wxID_ANY,
 				obj->GetPropertyAsPoint(_("pos")),
 				obj->GetPropertyAsSize(_("size")),
 				obj->GetPropertyAsInteger(_("style")) | obj->GetPropertyAsInteger(_("window_style")));
@@ -1980,6 +2167,15 @@ class RibbonBarComponent : public ComponentBase
 		return rb;
 	}
 
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonBar);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+
 	void OnCreated(wxObject* wxobject, wxWindow* /*wxparent*/) override {
 		wxRibbonBar* rb = wxDynamicCast( wxobject, wxRibbonBar );
 		if ( NULL == rb )
@@ -2014,12 +2210,9 @@ void ComponentEvtHandler::OnRibbonBarPageChanged( wxRibbonBarEvent& event )
 		IObject*  iChild = m_manager->GetIObject( wxChild );
 		if ( iChild )
 		{
-			if ( (int)i == selPage && !iChild->GetPropertyAsInteger( _("select") ) )
-			{
+			if (int(i) == selPage && iChild->GetPropertyAsInteger(_("select")) == 0) {
 				m_manager->ModifyProperty( wxChild, _("select"), wxT("1"), false );
-			}
-			else if ( (int)i != selPage && iChild->GetPropertyAsInteger( _("select") ) )
-			{
+			} else if (int(i) != selPage && iChild->GetPropertyAsInteger(_("select")) != 0) {
 				m_manager->ModifyProperty( wxChild, _("select"), wxT("0"), false );
 			}
 		}
@@ -2041,7 +2234,7 @@ class RibbonPageComponent : public ComponentBase
 			obj->GetPropertyAsBitmap(_("bitmap")),
 			0);
 
-		if( obj->GetPropertyAsInteger(_("select") ) ) {
+		if (obj->GetPropertyAsInteger(_("select")) != 0) {
 			((wxRibbonBar*)parent)->SetActivePage(rbpage);
 		}
 
@@ -2049,6 +2242,17 @@ class RibbonPageComponent : public ComponentBase
 
 		return rbpage;
 	}
+
+	/*
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonPage);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+	*/
 };
 
 class RibbonPanelComponent : public ComponentBase
@@ -2067,6 +2271,16 @@ class RibbonPanelComponent : public ComponentBase
 		return rbp;
 	}
 
+	/*
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonPanel);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+	*/
 };
 
 class RibbonButtonBarComponent : public ComponentBase
@@ -2082,6 +2296,18 @@ class RibbonButtonBarComponent : public ComponentBase
 
 		return rbb;
 	}
+
+	/*
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonButtonBar);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+	*/
+
 	void OnCreated(wxObject* wxobject, wxWindow* /*wxparent*/) override {
 		wxRibbonButtonBar* rb = wxDynamicCast( wxobject, wxRibbonButtonBar );
 		if ( NULL == rb )
@@ -2142,6 +2368,18 @@ class RibbonToolBarComponent : public ComponentBase
 
 		return rbb;
 	}
+
+	/*
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonToolBar);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+	*/
+
 	void OnCreated(wxObject* wxobject, wxWindow* /*wxparent*/) override {
 		wxRibbonToolBar* rb = wxDynamicCast( wxobject, wxRibbonToolBar );
 		if ( NULL == rb )
@@ -2199,6 +2437,18 @@ class RibbonGalleryComponent : public ComponentBase
 
 		return ribbonGallery;
 	}
+
+	/*
+	void Cleanup(wxObject* obj) override
+	{
+		auto* window = wxDynamicCast(obj, wxRibbonGallery);
+		if (window)
+		{
+			window->PopEventHandler(true);
+		}
+	}
+	*/
+
 	void OnCreated(wxObject* wxobject, wxWindow* /*wxparent*/) override {
 		wxRibbonGallery* rg = wxDynamicCast( wxobject, wxRibbonGallery );
 		if ( NULL == rg )
@@ -2370,7 +2620,7 @@ MACRO(wxTR_DEFAULT_STYLE)
 
 // wxGrid
 MACRO(wxALIGN_LEFT)
-MACRO(wxALIGN_CENTRE)
+MACRO(wxALIGN_CENTER)
 MACRO(wxALIGN_RIGHT)
 MACRO(wxALIGN_TOP)
 MACRO(wxALIGN_BOTTOM)
@@ -2444,6 +2694,28 @@ MACRO(wxDV_VERT_RULES)
 MACRO(wxDV_VARIABLE_LINE_HEIGHT)
 MACRO(wxDV_NO_HEADER)
 
+MACRO(wxDATAVIEW_CELL_INERT)
+MACRO(wxDATAVIEW_CELL_ACTIVATABLE)
+MACRO(wxDATAVIEW_CELL_EDITABLE)
+
+MACRO(wxDATAVIEW_COL_RESIZABLE)
+MACRO(wxDATAVIEW_COL_SORTABLE)
+MACRO(wxDATAVIEW_COL_REORDERABLE)
+MACRO(wxDATAVIEW_COL_HIDDEN)
+
+MACRO(wxELLIPSIZE_NONE)
+MACRO(wxELLIPSIZE_START)
+MACRO(wxELLIPSIZE_MIDDLE)
+MACRO(wxELLIPSIZE_END)
+
+MACRO(wxALIGN_LEFT)
+MACRO(wxALIGN_TOP)
+MACRO(wxALIGN_RIGHT)
+MACRO(wxALIGN_BOTTOM)
+MACRO(wxALIGN_CENTER)
+MACRO(wxALIGN_CENTER_HORIZONTAL)
+MACRO(wxALIGN_CENTER_VERTICAL)
+
 // wxRibbonBar
 MACRO(wxRIBBON_BAR_DEFAULT_STYLE)
 MACRO(wxRIBBON_BAR_FOLDBAR_STYLE)
@@ -2478,6 +2750,8 @@ MACRO(wxTR_DEFAULT_STYLE)
 ABSTRACT_COMPONENT( "wxTreeListCtrlColumn", wxcoreTreeListCtrlColumnComponent )
 MACRO(wxCOL_RESIZABLE)
 MACRO(wxCOL_SORTABLE)
+MACRO(wxCOL_REORDERABLE)
+MACRO(wxCOL_HIDDEN)
 
 END_LIBRARY()
 

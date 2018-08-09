@@ -44,8 +44,10 @@
 
 static int wxEVT_FB_PROP_BITMAP_CHANGED = wxNewEventType();
 
-#define WXFB_PROPERTY_GRID 1000
-#define WXFB_EVENT_GRID    1001
+enum {
+	WXFB_PROPERTY_GRID = wxID_HIGHEST + 1000,
+	WXFB_EVENT_GRID,
+};
 
 // -----------------------------------------------------------------------
 // ObjectInspector
@@ -265,10 +267,10 @@ wxPGProperty* ObjectInspector::GetProperty( PProperty prop )
 		wxPGChoices constants;
 		const std::map< wxString, wxString > options = opt_list->GetOptions();
 		std::map< wxString, wxString >::const_iterator it;
-		unsigned int i = 0;
+		unsigned int index = 0;
 		for( it = options.begin(); it != options.end(); ++it )
 		{
-			constants.Add( it->first, 1 << i++ );
+			constants.Add(it->first, 1 << index++);
 		}
 
 		int val = StringToBits(prop->GetValueAsString(), constants);
@@ -280,11 +282,11 @@ wxPGProperty* ObjectInspector::GetProperty( PProperty prop )
 		{
 			for ( size_t i = 0; i < flagsProp->GetItemCount(); i++ )
 			{
-				wxPGProperty* prop = flagsProp->Item( i );
-				std::map< wxString, wxString >::const_iterator option = options.find( prop->GetLabel() );
+				wxPGProperty* itemProp = flagsProp->Item(i);
+				std::map<wxString, wxString>::const_iterator option = options.find(itemProp->GetLabel());
 				if ( option != options.end() )
 				{
-					m_pg->SetPropertyHelpString( prop, option->second );
+					m_pg->SetPropertyHelpString(itemProp, option->second);
 				}
 			}
 		}
@@ -476,18 +478,21 @@ void ObjectInspector::AddItems( const wxString& name, PObjectBase obj,
 					std::list< PropertyChild >* children = prop_desc->GetChildren();
 					std::list< PropertyChild >::iterator it;
 					wxArrayString values = wxStringTokenize( prop->GetValueAsString(), wxT(";"), wxTOKEN_RET_EMPTY_ALL );
-					size_t i = 0;
+					size_t index = 0;
 					wxString value;
 
 					for ( it = children->begin(); it != children->end(); ++it )
 					{
-						if( values.GetCount() > i ) value = values[i++].Trim().Trim(false);
+						if (values.GetCount() > index) value = values[index++].Trim().Trim(false);
 						else value = wxT("");
 
 						wxPGProperty* child = nullptr;
 						if( PT_BOOL == it->m_type )
 						{
-							child = new wxBoolProperty( it->m_name, wxPG_LABEL, value.IsEmpty() || (value == it->m_name) );
+							// Because the format of a composed wxPGProperty value is stored this needs to be converted
+							// true == "<property name>"
+							// false == "Not <property name>"
+							child = new wxBoolProperty(it->m_name, wxPG_LABEL, value == it->m_name);
 						}
 						else if( PT_WXSTRING == it->m_type )
 						{
@@ -736,8 +741,11 @@ void ObjectInspector::OnPropertyGridChanged( wxPropertyGridEvent& event )
 			}
 			case PT_PARENT:
 			{
-				wxVariant value = propPtr->GetValue();
-				ModifyProperty( prop, propPtr->ValueToString( value, wxPG_FULL_VALUE ));
+				// GenerateComposedValue() is the only method that does actually return a value,
+				// although the documentation claims the other methods just call this one,
+				// they return an empty value
+				const auto value = propPtr->GenerateComposedValue();
+				ModifyProperty(prop, value);
 				break;
 			}
 			case PT_WXSTRING:

@@ -30,24 +30,28 @@
 #include "appdata.h"
 #include "auitabart.h"
 
+#include <map>
+#include <vector>
+
+#include <wx/config.h>
+#include <wx/tokenzr.h>
+
 #ifdef __WXMAC__
 	#include <wx/tooltip.h>
 #endif
 
-#define ID_PALETTE_BUTTON 999
-
 #define DRAG_OPTION 0
 
-wxWindowID wxFbPalette::nextId = wxID_HIGHEST + 1000;
+wxWindowID wxFbPalette::nextId = wxID_HIGHEST + 3000;
 
 BEGIN_EVENT_TABLE( wxFbPalette, wxPanel )
 	#ifdef __WXMAC__
-		EVT_BUTTON( -1, wxFbPalette::OnButtonClick )
+		EVT_BUTTON(wxID_ANY, wxFbPalette::OnButtonClick)
 	#else
-		EVT_TOOL(-1, wxFbPalette::OnButtonClick)
+		EVT_TOOL(wxID_ANY, wxFbPalette::OnButtonClick)
 	#endif
-	EVT_SPIN_UP( -1, wxFbPalette::OnSpinUp )
-	EVT_SPIN_DOWN( -1, wxFbPalette::OnSpinDown )
+	EVT_SPIN_UP(wxID_ANY, wxFbPalette::OnSpinUp)
+	EVT_SPIN_DOWN(wxID_ANY, wxFbPalette::OnSpinDown)
 END_EVENT_TABLE()
 
 wxFbPalette::wxFbPalette( wxWindow *parent, int id )
@@ -89,31 +93,85 @@ void wxFbPalette::PopulateToolbar( PObjectPackage pkg, wxAuiToolBar *toolbar )
 	}
 }
 
+void wxFbPalette::SavePosition()
+{
+	auto* config = wxConfigBase::Get();
+	wxString pageOrder;
+
+	for (size_t i = 0; i < m_notebook->GetPageCount(); ++i)
+	{
+		if (!pageOrder.empty())
+		{
+			pageOrder.append(wxT(","));
+		}
+		pageOrder.append(m_notebook->GetPageText(i));
+	}
+
+	config->Write(wxT("/palette/pageOrder"), pageOrder);
+}
+
 void wxFbPalette::Create()
 {
-	wxBoxSizer *top_sizer = new wxBoxSizer( wxVERTICAL );
-
-	m_notebook = new wxAuiNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TOP | wxAUI_NB_SCROLL_BUTTONS );
-	m_notebook->SetArtProvider( new AuiTabArt() );
-
+	// Package count
 	unsigned int pkg_count = AppData()->GetPackageCount();
+	// Lookup map of all packages
+	std::map<wxString, PObjectPackage> packages;
+	// List of pages to add to the notebook in desired order
+	std::vector<std::pair<wxString, PObjectPackage>> pages;
+	pages.reserve(pkg_count);
 
 	LogDebug( wxT( "[Palette] Pages %d" ), pkg_count );
 
+	// Fill lookup map of packages
+	for (unsigned int i = 0; i < pkg_count; ++i)
+	{
+		auto pkg = AppData()->GetPackage(i);
+		packages.insert(std::make_pair(pkg->GetPackageName(), pkg));
+	}
+
+	// Read the page order from settings and build the list of pages from it
+	auto* config = wxConfigBase::Get();
+	wxStringTokenizer pageOrder(config->Read(wxT("/palette/pageOrder"), wxT("Common,Additional,Data,Containers,Menu/Toolbar,Layout,Forms,Ribbon")), wxT(","));
+	while (pageOrder.HasMoreTokens())
+	{
+		const auto packageName = pageOrder.GetNextToken();
+		auto package = packages.find(packageName);
+		if (packages.end() == package)
+		{
+			// Plugin missing - move on
+			continue;
+		}
+		
+		// Add package to pages list and remove from lookup map
+		pages.push_back(std::make_pair(package->first, package->second));
+		packages.erase(package);
+	}
+
+	// The remaining packages from the lookup map need to be added to the page list
+	for (auto& package : packages)
+	{
+		pages.push_back(std::make_pair(package.first, package.second));
+	}
+	packages.clear();
+
+	wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+	m_notebook = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_NB_TOP | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_TAB_MOVE);
+	m_notebook->SetArtProvider(new AuiTabArt());
+
 	wxSize minsize;
 
-	for ( unsigned int i = 0; i < pkg_count;i++ )
+	for (size_t i = 0; i < pages.size(); ++i)
 	{
-		PObjectPackage pkg = AppData()->GetPackage( i );
-		wxString pkg_name = pkg->GetPackageName();
+		const auto& page = pages[i];
 
-		wxPanel *panel = new wxPanel( m_notebook, -1 );
+		wxPanel *panel = new wxPanel( m_notebook, wxID_ANY);
 		//panel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_3DFACE ) );
 		wxBoxSizer *sizer = new wxBoxSizer( wxHORIZONTAL );
 
-		wxAuiToolBar *toolbar = new wxAuiToolBar( panel, -1, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxNO_BORDER );
+		wxAuiToolBar *toolbar = new wxAuiToolBar( panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_OVERFLOW | wxNO_BORDER );
 		toolbar->SetToolBitmapSize( wxSize( 22, 22 ) );
-		PopulateToolbar( pkg, toolbar );
+		PopulateToolbar(page.second, toolbar);
 		m_tv.push_back( toolbar );
 
 		sizer->Add( toolbar, 1, wxEXPAND, 0 );
@@ -127,8 +185,8 @@ void wxFbPalette::Create()
 		if( cursize.x > minsize.x ) minsize.x = cursize.x;
 		if( cursize.y > minsize.y ) minsize.y = cursize.y + 30;
 
-		m_notebook->AddPage( panel, pkg_name, false, i );
-		m_notebook->SetPageBitmap( i, pkg->GetPackageIcon() );
+		m_notebook->AddPage(panel, page.first, false, i);
+		m_notebook->SetPageBitmap(i, page.second->GetPackageIcon());
 
 	}
 	//Title *title = new Title( this, wxT("Component Palette") );
@@ -169,5 +227,3 @@ void wxFbPalette::OnButtonClick( wxCommandEvent &event )
 		}
 	#endif
 }
-
-wxFbPalette::~wxFbPalette() = default;

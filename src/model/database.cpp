@@ -33,11 +33,9 @@
 #include "objectbase.h"
 
 #include <ticpp.h>
-#include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include <wx/tokenzr.h>
 
 //#define DEBUG_PRINT(x) cout << x
 
@@ -269,7 +267,7 @@ PObjectBase ObjectDatabase::CreateObject( std::string classname, PObjectBase par
 		bool aui = false;
 		if( parentType->GetName() == wxT("form") )
 		{
-			aui = parent->GetPropertyAsInteger(wxT("aui_managed"));
+			aui = parent->GetPropertyAsInteger(wxT("aui_managed")) != 0;
 		}
 
 		int max = parentType->FindChildType(objType, aui);
@@ -317,16 +315,16 @@ PObjectBase ObjectDatabase::CreateObject( std::string classname, PObjectBase par
 			for (unsigned int i=0; !created && i < parentType->GetChildTypeCount(); i++)
 			{
 				PObjectType childType = parentType->GetChildType(i);
-				int max = childType->FindChildType(objType, aui);
+				int childMax = childType->FindChildType(objType, aui);
 
-				if (childType->IsItem() && max != 0)
+				if (childType->IsItem() && childMax != 0)
 				{
-					max = parentType->FindChildType(childType, aui);
+					childMax = parentType->FindChildType(childType, aui);
 
 					// si el tipo es un item y además el tipo del objeto a crear
 					// puede ser hijo del tipo del item vamos a intentar crear la
 					// instancia del item para crear el objeto como hijo de este
-					if (max < 0 || CountChildrenWithSameType(parent, childType) < max)
+					if (childMax < 0 || CountChildrenWithSameType(parent, childType) < childMax)
 					{
 						// No hay problemas para crear el item debajo de parent
 						PObjectBase item = NewObject(GetObjectInfo(childType->GetName()));
@@ -711,30 +709,12 @@ void ObjectDatabase::LoadPlugins( PwxFBManager manager )
         moreDirectories = pluginsDir.GetNext( &pluginDirName );
     }
 
-    // Get previous plugin order
-	wxConfigBase* config = wxConfigBase::Get();
-	wxString pages = config->Read( wxT("/palette/pageOrder"), wxT("Common,Additional,Data,Containers,Menu/Toolbar,Layout,Forms,Ribbon") );
-
-	// Add packages to the vector in the correct order
-	wxStringTokenizer packageList( pages, wxT(",") );
-	while ( packageList.HasMoreTokens() )
+	// Add packages to final data structure
+	m_pkgs.reserve(packages.size());
+	for (auto& package : packages)
 	{
-		wxString packageName = packageList.GetNextToken();
-		PackageMap::iterator packageIt = packages.find( packageName );
-		if ( packages.end() == packageIt )
-		{
-			// Plugin missing - move on
-			continue;
-		}
-		m_pkgs.push_back( packageIt->second );
-		packages.erase( packageIt );
+		m_pkgs.push_back(package.second);
 	}
-
-    // If any packages remain in the map, they are new plugins and must still be added
-    for ( PackageMap::iterator packageIt = packages.begin(); packageIt != packages.end(); ++packageIt )
-    {
-    	m_pkgs.push_back( packageIt->second );
-    }
 }
 
 void ObjectDatabase::SetupPackage(const wxString& file,
@@ -800,13 +780,13 @@ void ObjectDatabase::SetupPackage(const wxString& file,
 		ticpp::Element* elem_obj = root->FirstChildElement( OBJINFO_TAG, false );
 		while ( elem_obj )
 		{
-			std::string wxver;
-			elem_obj->GetAttributeOrDefault( WXVERSION_TAG, &wxver, "" );
-			if( wxver != "" )
+			std::string wxver_obj;
+			elem_obj->GetAttributeOrDefault(WXVERSION_TAG, &wxver_obj, "");
+			if (!wxver_obj.empty())
 			{
 				long wxversion = 0;
 				// skip widgets supported by higher wxWidgets version than used for the build
-				if( (! _WXSTR(wxver).ToLong( &wxversion ) ) || (wxversion > wxVERSION_NUMBER) )
+				if((!_WXSTR(wxver_obj).ToLong(&wxversion)) || (wxversion > wxVERSION_NUMBER))
 				{
 					elem_obj = elem_obj->NextSiblingElement( OBJINFO_TAG, false );
 					continue;
@@ -1214,22 +1194,25 @@ void ObjectDatabase::ParseProperties( ticpp::Element* elem_obj, PObjectInfo obj_
 				child.m_type = ParsePropertyType( _WXSTR( child_type ) );
 
 				// Get default value
+				// Empty tags don't contain any child so this will throw in that case
+				std::string child_value;
 				try
 				{
 					ticpp::Node* lastChild = elem_child->LastChild();
 					ticpp::Text* text = lastChild->ToText();
-					child.m_defaultValue = _WXSTR( text->Value() );
-
-					// build parent default value
-					if ( children.size() > 0 )
-					{
-						def_value += "; ";
-					}
-					def_value += text->Value();
+					child_value = text->Value();
 				}
 				catch( ticpp::Exception& ){}
+				child.m_defaultValue = _WXSTR(child_value);
 
-				children.push_back( child );
+				// build parent default value
+				if (children.size() > 0)
+				{
+					def_value += "; ";
+				}
+				def_value += child_value;
+				
+				children.push_back(child);
 
 				elem_child = elem_child->NextSiblingElement( "child", false );
 			}
